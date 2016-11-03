@@ -16,25 +16,44 @@ class MessageNotCoprimeError(RSAError):
 
 
 hrange = lambda x: range(1, x+1)
+"""lambda: create 1-based range.
 
+Arguments:
+    x (int): The inclusive maximum of the range.
+"""
+
+isodd = lambda x: bool(x%2)
+"""lambda: returns True if argument is odd, else False."""
 
 def exp(x, n): # x^n
-    """Calculates x^n in (hopefully) log(n) time"""
+    """Calculates x^n in (hopefully) log(n) time.
+    
+    'n' is expected to be an integer.
+    
+    Note:
+        This function is recursive, 
+    
+    """
     #simple cases
     if n == 0:
         return 1
     if n == 1:
         return x
-    #even
-    if not n % 2:
-        return exp( x*x, n//2 )
-    #odd
-    else:
+    if isodd(n):
         return x * exp( x*x, (n-1)//2 )
+    else:
+        return exp( x*x, n//2 )
 
 
 def exp_m(x, n, m): # x^n % m
-    """Calculates x^n(%m) in (hopefully) log(n) time"""
+    """Calculates x^n(%m) in (hopefully) log(n) time
+    
+    'n' is expected to be an integer >= 1.
+    """
+    
+    if n < 1:
+        raise ValueError("Argument 'n' must be >= 1, received {!r}".format(n))
+    
     #simple cases
     if n == 0:
         return 1
@@ -42,12 +61,12 @@ def exp_m(x, n, m): # x^n % m
         return x%m
     
     #fast-exponentiation
-    y = x if (n%2) else 1
+    y = x if isodd(n) else 1
     n = int(n/2)
     
     while n > 0:
         x = x**2 % m
-        if n%2: #odd
+        if isodd(n):
             y = x if (y==1) else (y*x % m)
         n = int(n/2)
     
@@ -151,6 +170,7 @@ def millerRabinPPT(w,iterations):
     """
     w = int(w)
     
+    ## SPECIAL CASES
     if w % 2 == 0:  #even
         return False
     if w < 0:       #negative
