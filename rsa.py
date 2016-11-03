@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import random
 
 import euclidean
 
@@ -119,6 +120,19 @@ def deintegerize(value,length=None):
     return value.to_bytes(length, byteorder=DEFAULT_BYTEORDER, signed=False)
 
 
+def millerRabinIterations(w):
+    """Calculates the number of Miller-Rabin iterations to do for w.
+    
+    Algorithm is 22*log(0.0062*len(w)), but returns a minimum of 5.
+    """
+    if w == 0:
+        return 5
+    
+    return max( 5,
+                int( 22 * math.log(0.0062 * w.bit_length()) )
+              )
+
+
 def millerRabinPPT(w,iterations):
     """Implementation of Miller-Rabin Probabilistic Primality Test.
     
@@ -133,7 +147,15 @@ def millerRabinPPT(w,iterations):
         Based on algorithm defined in page 70, section C.3.1 of
         http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
     """
-    if w % 2 == 0:
+    w = int(w)
+    
+    if w % 2 == 0:  #even
+        return False
+    if w < 0:       #negative
+        w = abs(w)
+    if w in (1,3):  #special cases
+        return True
+    elif w in (0,):
         return False
     
     #1. Let a be the largest integer such that 2^a divides w-1
@@ -155,7 +177,7 @@ def millerRabinPPT(w,iterations):
         #       Ensure that 1 < b < w-1
         #4.2. If ((b<=1)or(b>=w-1)) then go to step 4.1
         b = 0
-        while b<=1 or b>=w-1:
+        while b<=1 or b>=w-1: ##PROBLEM: loops forever if w<=3
             b = random.getrandbits(wlen)
         
         #4.3. z = b^m mod w
