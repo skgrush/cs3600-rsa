@@ -128,6 +128,8 @@ def millerRabinIterations(w):
     if w == 0:
         return 5
     
+    #pre-condition: w != 0
+    #   because w.bit_length() must be > 0
     return max( 5,
                 int( 22 * math.log(0.0062 * w.bit_length()) )
               )
@@ -143,9 +145,9 @@ def millerRabinPPT(w,iterations):
     Returns:
         bool: True if PROBABLY prime, False if definitely not prime.
     
-    Note:
-        Based on algorithm defined in page 70, section C.3.1 of
-        http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
+    References:
+        Based on algorithm defined by FIPS 186-4, Appendix C.3.1.
+        http://dx.doi.org/10.6028/NIST.FIPS.186-4
     """
     w = int(w)
     
@@ -161,7 +163,7 @@ def millerRabinPPT(w,iterations):
     #1. Let a be the largest integer such that 2^a divides w-1
     a = int( math.log2(w-1) )
     while a > 0:
-        if (w-1)%exp(2,a) == 0: # 2^a divides w-1
+        if (w-1) % exp(2,a) == 0: # 2^a divides w-1
             break
         a -= 1
     
