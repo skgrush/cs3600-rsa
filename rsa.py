@@ -254,6 +254,21 @@ def keygen(k_bits):
     p = getPrimeRandom(p_bits)
     q = getPrimeRandom(q_bits)
     
+    totient_n = (p-1)*(q-1)
+    
+    e = None
+    for i in (65537, 257, 17, 5):
+        if euclidean.extendedEuclidean( totient_n, i ):
+            e = i
+            break
+    if e is None:
+        i=3
+        while True:
+            if euclidean.extendedEuclidean( totient_n, i):
+                e = i
+                break
+            i+=2
+    
     
 
 
