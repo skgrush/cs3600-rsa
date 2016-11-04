@@ -15,13 +15,6 @@ class MessageNotCoprimeError(RSAError):
     pass
 
 
-hrange = lambda x: range(1, x+1)
-"""lambda: create 1-based range.
-
-Arguments:
-    x (int): The inclusive maximum of the range.
-"""
-
 isodd = lambda x: bool(x&1)
 """lambda: returns True if argument is odd, else False."""
 

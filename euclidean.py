@@ -46,27 +46,28 @@ def extendedEuclidean( a, b ):
     return (old_r, old_s, old_t)
 
 
-def readFromFile(inputfile):
+def readFromFile(inputfile,lines=2):
     """Read two lines from path *inputfile* and return them.
     
     Exits on failure.
     """
-    a,b = None,None
+    vals = [None]*lines
     
     try:
         with open(inputfile, 'r') as ifl:
-            a = ifl.readline().strip()
-            b = ifl.readline().strip()
+            
+            for i in range(lines):
+                vals[i] = ifl.readline().strip()
         
     except Exception as err:
         print(type(err).__name__, err)
         exit(-1)
     
-    if not a or not b:
+    if None in vals or '' in vals:
         print("\nERROR: Not enough arguments in", repr(inputfile))
         exit(1)
     
-    return a,b
+    return tuple(vals)
 
 
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
                               "the GCD of a and b, and the linear " \
                               "combination of GCD(a,b): ")
         
-        a, b = readFromFile(inputfile)
+        a, b = readFromFile(inputfile,2)
     
     
     try:
