@@ -247,30 +247,46 @@ def getPrimeRandom(k_bits):
 ## 
 
 def keygen(k_bits):
-    # p-length = [k/2, 3k/4]
+    """Generate RSA public- and private-key pair.
+    
+    Arguments:
+        k_bits (int): Desired size of N.
+    
+    Returns:
+        ( (N,e), (N,d) ), tuple of public- and private-key tuples.
+    """
+    # k_bits/2 <= p_bits < 3k_bits/4
     p_bits = int(k_bits/2) + random.randint( 0, int(k_bits/4) )
     q_bits = k_bits - p_bits
     
+    # generate p,q
     p = getPrimeRandom(p_bits)
     q = getPrimeRandom(q_bits)
     
-    totient_n = (p-1)*(q-1)
+    # generate N
+    N = p*q
+    totient_N = (p-1)*(q-1)
     
+    # generate e
     e = None
     for i in (65537, 257, 17, 5):
-        if euclidean.extendedEuclidean( totient_n, i ):
+        if euclidean.extendedEuclidean( totient_N, i ):
             e = i
             break
     if e is None:
         i=3
         while True:
-            if euclidean.extendedEuclidean( totient_n, i):
+            if euclidean.extendedEuclidean( totient_N, i):
                 e = i
                 break
             i+=2
     
+    # generate d
+    # ModMultInv of b under a  ==  x from (1 = e*x + N*y)
+    d = euclidean.extendedEuclidean( e, N )[1]
     
-
+    return (N,e), (N,d)
+    
 
 def encrypt(N, e, message):
     """RSA encryption function.
