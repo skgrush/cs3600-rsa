@@ -272,3 +272,13 @@ def decrypt(N, d, ciphertext, msg_length=None):
     return deintegerize( message, msg_length )
 
 
+def interactiveInput():
+    try: input = raw_input
+    except: pass
+    
+    pqe_inpf = input("Enter the name of the file that contains p, q and e:")
+    dN_outf = input("Enter the output file name to store d and N:")
+    x_inpf = input("Enter the name of the file that contains x to be encrypted using (N,e):")
+    Ex_outf = input("Enter the output file name to store E(x):")
+    c_inpf = input("Enter the name of the file that contains c to be decrypted using d:")
+    Dc_outf = input("Enter the output file name to store D(c):")
