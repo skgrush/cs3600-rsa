@@ -144,19 +144,15 @@ def deintegerize(value,length=None):
 
 
 def _millerRabinIterations(w):
-    """Calculates the number of Miller-Rabin iterations to do for w.
-    
-    Algorithm is 22*log(0.0062*len(w)), but returns a minimum of 5.
-    """
-    w_len = w.bit_length()
-    if w_len < 205:
-        return 5
-    
-    return int( 22 * math.log(w_len) ) - 112
+    """Calculates the number of Miller-Rabin iterations to do for w."""
+    return max( 5,  int(22 * math.log(w.bit_length())) - 112 )
 
 
 def millerRabinPPT(w,iterations=None):
     """Implementation of Miller-Rabin Probabilistic Primality Test.
+    
+    If *iterations* is not specified, it is determined by 
+    _millerRabinIterations().
     
     Arguments:
         w (int): integer to be tested.
