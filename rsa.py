@@ -143,27 +143,24 @@ def deintegerize(value,length=None):
     return value.to_bytes(length, byteorder=DEFAULT_BYTEORDER, signed=False)
 
 
-def millerRabinIterations(w):
+def _millerRabinIterations(w):
     """Calculates the number of Miller-Rabin iterations to do for w.
     
     Algorithm is 22*log(0.0062*len(w)), but returns a minimum of 5.
     """
-    if w == 0:
+    w_len = w.bit_length()
+    if w_len < 205:
         return 5
     
-    #pre-condition: w != 0
-    #   because w.bit_length() must be > 0
-    return max( 5,
-                int( 22 * math.log(0.0062 * w.bit_length()) )
-              )
+    return int( 22 * math.log(w_len) ) - 112
 
 
-def millerRabinPPT(w,iterations):
+def millerRabinPPT(w,iterations=None):
     """Implementation of Miller-Rabin Probabilistic Primality Test.
     
     Arguments:
         w (int): integer to be tested.
-        iterations (int): number of iterations of the test.
+        iterations (int,optional): number of iterations of the test.
     
     Returns:
         bool: True if PROBABLY prime, False if definitely not prime.
@@ -174,15 +171,17 @@ def millerRabinPPT(w,iterations):
     """
     w = int(w)
     
+    if iterations is None:
+        iterations = _millerRabinIterations(w)
+    
     ## SPECIAL CASES
-    if w % 2 == 0:  #even
+    if w < 2:
         return False
-    if w < 0:       #negative
-        w = abs(w)
-    if w in (1,3):  #special cases
+    if w <= 3:
         return True
-    elif w in (0,):
+    if not isodd(w):
         return False
+    
     
     #1. Let a be the largest integer such that 2^a divides w-1
     a = int( math.log2(w-1) )
@@ -192,41 +191,44 @@ def millerRabinPPT(w,iterations):
         a -= 1
     
     #2. m = (w-1)/2^a
-    m = (w-1)/pow(2,a)
+    m = (w-1)//pow(2,a)
     
     #3. wlen = len(w)
     wlen = w.bit_length()
     
     #4. For i=1 to iterations do
-    for i in hrange(iterations):
+    for i in range(iterations):
         #4.1. Obtain a string b of wlen bits from an RBG
         #       Ensure that 1 < b < w-1
         #4.2. If ((b<=1)or(b>=w-1)) then go to step 4.1
         b = 0
-        while b<=1 or b>=w-1: ##PROBLEM: loops forever if w<=3
+        while not (1 < b and b < w-1): ##PROBLEM: loops forever if w<=3
             b = random.getrandbits(wlen)
         
         #4.3. z = b^m mod w
         z = pow(b, m, w)
         
-        #4.4. If ((z=1)or(z=w-1)) then go to step 4.7
+        #4.4. If ((z=1)or(z=w-1)) then go to step 4.7 [Continue]
         if z==1 or z==w-1:
             continue
         
         #4.5. For j=1 to a-1 do
-        for j in hrange(a-1):
+        continueOuter = False
+        for j in range(a):
             #4.5.1. z = z^2 mod w
             z = z**2 % w
             
-            #4.5.2. If (z=w-1), then go to step 4.7
-            #4.5.3. If (z=1), then go to step 4.6
-            if z in (1,w-1):
+            #4.5.2. If (z=w-1), then go to step 4.7 [Continue loop #4]
+            if z == w-1:
+                continueOuter = True
                 break
-        
-        if z == w-1:
+            #4.5.3. If (z=1), then go to step 4.6 [Return False]
+            if z == 1:
+                return False
+        if continueOuter:
             continue
-        if z == 1:
-            return False
+        
+        return False
     
     return True
 
