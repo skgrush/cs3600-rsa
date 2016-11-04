@@ -167,16 +167,16 @@ def millerRabinPPT(w,iterations=None):
     """
     w = int(w)
     
-    if iterations is None:
-        iterations = _millerRabinIterations(w)
-    
     ## SPECIAL CASES
     if w < 2:
         return False
-    if w <= 3:
+    elif w == 3:
         return True
-    if not isodd(w):
+    elif not isodd(w):
         return False
+    
+    if iterations is None:
+        iterations = _millerRabinIterations(w)
     
     
     #1. Let a be the largest integer such that 2^a divides w-1
@@ -233,11 +233,13 @@ def millerRabinPPT(w,iterations=None):
 def getPrimeRandom(k_bits):
     """Generates a prime random k_bits-length integer.
     """
+    if k_bits <= 1:
+        raise ValueError("number of bits must be greater than 1")
     
     while True:
         k = random.getrandbits(k_bits)
-        
-        
+        if millerRabinPPT(k):
+            return k
 
 
 ## 
