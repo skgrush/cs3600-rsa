@@ -257,7 +257,7 @@ def keygen(k_bits):
     
 
 
-def encrypt(pubkey, message):
+def encrypt(N, e, message):
     """RSA encryption function.
     
     Arguments:
@@ -277,25 +277,23 @@ def encrypt(pubkey, message):
         raise TypeError("argument 'message' should be an int or string, " \
                         "not a {}.".format( type(message).__name__ ) )
     
-    N,e = pubkey
-    
     if euclidean.extendedEuclidean( N, message )[0] != 1:
         raise MessageNotCoprimeError
     
-    return pow( message, e, N ) # message^e % N
+    return pow( message, e, N )
 
 
-def decrypt(privkey, N, ciphertext, msg_length=None):
+def decrypt(N, d, ciphertext, msg_length=None):
     """RSA decryption function.
     
     Arguments:
-        privkey (int): the private key 'd'.
-        N (int): the 'N' of the public key.
+        N (int): the modulus.
+        d (int): the private exponent.
         ciphertext (int): the encrypted ciphertext.
         msg_length (int,optional): the expected length of the message.
     
     """
-    message = pow( ciphertext, privkey, N ) #ciphertext^d % N
+    message = pow( ciphertext, d, N )
     
     return deintegerize( message, msg_length )
 
