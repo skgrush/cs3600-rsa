@@ -223,7 +223,7 @@ def generate_d(p, q, e):
 
 
 def keygen(k_bits):
-    """Generate RSA public- and private-key pair.
+    """Generate RSA public- and private-key pair for *k_bit*-length N. 
     
     Arguments:
         k_bits (int): Desired size of N.
@@ -250,7 +250,8 @@ def encrypt(N, e, message):
     """RSA encryption function.
     
     Arguments:
-        pubkey (tuple): public key (N,e) for encryption.
+        N (int): the modulus.
+        e (int): the public exponent.
         message (str or int): message to be encrypted.
     
     Returns:
@@ -260,13 +261,13 @@ def encrypt(N, e, message):
         TypeError: If 'message' isn't integerizable.
         MessageNotCoprimeError: If 'message' and N are not co-prime.
     """
-    message = integerize( message )
+    int_message = integerize( message )
     
-    if message is None:
+    if int_message is None:
         raise TypeError("argument 'message' should be an int or string, " \
                         "not a {}.".format( type(message).__name__ ) )
     
-    if euclidean.extendedEuclidean( N, message )[0] != 1:
+    if euclidean.extendedEuclidean( N, int_message )[0] != 1:
         raise MessageNotCoprimeError
     
     return pow( message, e, N )
@@ -318,4 +319,6 @@ def interactiveInput():
     Dc_outPath= input("Enter the output file name to store D(c):")
     with open(Dc_outPath, mode='w') as Dc_outFile:
         Dc_outFile.write(Dc)
-    
+
+
+
