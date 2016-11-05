@@ -189,6 +189,39 @@ def getPrimeRandom(k_bits):
 ## RSA FUNCTIONS
 ## 
 
+def generate_e(p, q):
+    """Find a suitable public exponent 'e' based on *p* and *q*.
+    
+    *p* and *q* should be prime numbers.
+    """
+    totient_N = (p-1)*(q-1)
+    
+    for i in (65537, 257, 17, 5):
+        if euclidean.extendedEuclidean( totient_N, i )[0] == 1:
+            return i
+    
+    #try all the odds
+    i=3
+    while True:
+        if euclidean.extendedEuclidean( totient_N, i )[0] == 1:
+            return i
+        i+=2
+
+
+def generate_d(p, q, e):
+    """Generate the private exponent 'd' based on *p*, *q*, and *e*.
+    
+    *p* and *q* should be prime numbers, and *e* should be relatively prime
+    to (p-1)*(q-1).
+    """
+    totient_N = (p-1)*(q-1)
+    
+    # ModMultInv of b (under mod a) is x from (1 = e*x + N*y)
+    d = euclidean.extendedEuclidean( e, N )[1]
+    
+    return d
+
+
 def keygen(k_bits):
     """Generate RSA public- and private-key pair.
     
@@ -198,7 +231,7 @@ def keygen(k_bits):
     Returns:
         ( (N,e), (N,d) ), tuple of public- and private-key tuples.
     """
-    # k_bits/2 <= p_bits < 3k_bits/4
+    # 1/2*k_bits <= p_bits < 3/4*k_bits
     p_bits = int(k_bits/2) + random.randint( 0, int(k_bits/4) )
     q_bits = k_bits - p_bits
     
@@ -206,27 +239,9 @@ def keygen(k_bits):
     p = getPrimeRandom(p_bits)
     q = getPrimeRandom(q_bits)
     
-    # generate N
     N = p*q
-    totient_N = (p-1)*(q-1)
-    
-    # generate e
-    e = None
-    for i in (65537, 257, 17, 5):
-        if euclidean.extendedEuclidean( totient_N, i ):
-            e = i
-            break
-    if e is None:
-        i=3
-        while True:
-            if euclidean.extendedEuclidean( totient_N, i):
-                e = i
-                break
-            i+=2
-    
-    # generate d
-    # ModMultInv of b under a  ==  x from (1 = e*x + N*y)
-    d = euclidean.extendedEuclidean( e, N )[1]
+    e = generate_e(p, q)
+    d = generate_d(p, q, e)
     
     return (N,e), (N,d)
     
@@ -276,9 +291,31 @@ def interactiveInput():
     try: input = raw_input
     except: pass
     
-    pqe_inpf = input("Enter the name of the file that contains p, q and e:")
-    dN_outf = input("Enter the output file name to store d and N:")
-    x_inpf = input("Enter the name of the file that contains x to be encrypted using (N,e):")
-    Ex_outf = input("Enter the output file name to store E(x):")
-    c_inpf = input("Enter the name of the file that contains c to be decrypted using d:")
-    Dc_outf = input("Enter the output file name to store D(c):")
+    pqe_inpPath = input("Enter the name of the file that contains p, q and e:")
+    p, q, e = map(int, euclidean.readFromFile(pqe_inpPath, 3) )
+    
+    d = generate_d(p, q, e)
+    
+    dN_outPath= input("Enter the output file name to store d and N:")
+    with open(dN_outPath, mode='w') as dN_outFile:
+        for val in (d, '\n', N):
+            dN_outFile.write(val)
+    
+    x_inpPath= input("Enter the name of the file that contains x to be encrypted using (N,e):")
+    x = euclidean.readFromFile(x_inpPath, 1)
+    
+    Ex = encrypt( p*q, e, x )
+    
+    Ex_outPath= input("Enter the output file name to store E(x):")
+    with open(Ex_outPath, mode='w') as Ex_outFile:
+        Ex_outFile.write(Ex)
+    
+    c_inpPath= input("Enter the name of the file that contains c to be decrypted using d:")
+    c = euclidean.readFromFile(c_inpPath, 1)
+    
+    Dc = decrypt(p*q, d, c)
+    
+    Dc_outPath= input("Enter the output file name to store D(c):")
+    with open(Dc_outPath, mode='w') as Dc_outFile:
+        Dc_outFile.write(Dc)
+    
