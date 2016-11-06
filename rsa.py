@@ -16,6 +16,8 @@ class RSAError(Exception):
 class MessageNotCoprimeError(RSAError):
     pass
 
+class MessageTooLarge(RSAError):
+    pass
 
 def integerize(value):
     """Converts a value's bytes to an integer.
@@ -145,6 +147,9 @@ def encrypt(N, e, message):
         raise TypeError("argument 'message' should be an int or string, " \
                         "not a {}.".format( type(message).__name__ ) )
     
+    if int_message >= N:
+        raise MessageTooLarge
+    
     if euclidean.extendedEuclidean( N, int_message )[0] != 1:
         raise MessageNotCoprimeError
     
@@ -161,6 +166,9 @@ def decrypt(N, d, ciphertext, msg_length=None):
         msg_length (int,optional): the expected length of the message.
     
     """
+    if ciphertext >= N:
+        raise MessageTooLarge
+    
     message = pow( ciphertext, d, N )
     
     return deintegerize( message, msg_length )
