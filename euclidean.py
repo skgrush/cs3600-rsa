@@ -45,7 +45,10 @@ def extendedEuclidean( a, b ):
     
     return (old_r, old_s, old_t)
 
-
+def _rFF(ifl,lines,vals):
+    for i in range(lines):
+        vals[i] = ifl.readline().strip()
+    
 def readFromFile(inputfile,lines=2):
     """Read two lines from path *inputfile* and return them.
     
@@ -54,13 +57,15 @@ def readFromFile(inputfile,lines=2):
     vals = [None]*lines
     
     try:
-        with open(inputfile, 'r') as ifl:
-            
-            for i in range(lines):
-                vals[i] = ifl.readline().strip()
+        if hasattr(inputfile,'readline'):
+            _rFF(inputfile,lines,vals)
+        
+        else:
+            with open(inputfile, 'r') as ifl:
+                _rFF(ifl,lines,vals)
         
     except Exception as err:
-        print(type(err).__name__, err)
+        print("readFromFile:",type(err).__name__, err)
         exit(-1)
     
     if None in vals or '' in vals:

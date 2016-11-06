@@ -8,6 +8,8 @@ import euclidean
 
 DEFAULT_ENCODING = 'UTF-8'
 DEFAULT_BYTEORDER = 'little'
+DEFAULT_kbits = 2048
+DEFAULT_kbits = 2048
 
 class RSAError(Exception):
     pass
@@ -218,7 +220,7 @@ def generate_d(p, q, e):
     totient_N = (p-1)*(q-1)
     
     # ModMultInv of b (under mod a) is x from (1 = e*x + N*y)
-    d = euclidean.extendedEuclidean( e, N )[1]
+    d = euclidean.extendedEuclidean( e, totient_N )[1]
     
     return d
 
@@ -271,7 +273,7 @@ def encrypt(N, e, message):
     if euclidean.extendedEuclidean( N, int_message )[0] != 1:
         raise MessageNotCoprimeError
     
-    return pow( message, e, N )
+    return pow( int_message, e, N )
 
 
 def decrypt(N, d, ciphertext, msg_length=None):
@@ -301,8 +303,7 @@ def interactiveInput():
         
         dN_outPath= _input("Enter the output file name to store d and N:")
         with open(dN_outPath, mode='w') as dN_outFile:
-            for val in (d, '\n', N):
-                dN_outFile.write(val)
+            dN_outFile.write("{}\n{}".format(d,N))
         
         x_inpPath= _input("Enter the name of the file that contains x to be encrypted using (N,e):")
         x = euclidean.readFromFile(x_inpPath, 1)
@@ -311,7 +312,7 @@ def interactiveInput():
         
         Ex_outPath= _input("Enter the output file name to store E(x):")
         with open(Ex_outPath, mode='w') as Ex_outFile:
-            Ex_outFile.write(Ex)
+            Ex_outFile.write(str(Ex))
         
         c_inpPath= _input("Enter the name of the file that contains c to be decrypted using d:")
         c = euclidean.readFromFile(c_inpPath, 1)
@@ -381,14 +382,13 @@ if __name__ == '__main__':
     parser_gen.add_argument('-p','--pair', type=int, nargs='?', metavar='bits',
                             help="Generate a public-/private-key pair. " \
                             "Optional argument is the desired size of N in " \
-                            "bits. Defaults to 2048.", default=2048)
+                            "bits. Defaults to %const", 
+                            default=None, const=DEFAULT_kbits)
     parser_gen.add_argument('--pub-out', type=argparse.FileType('w'),
                             help="File to output the public key to. Default " \
                             "is stdout. Will overwrite the file!")
     
     ARGS = parser.parse_args()
-    
-    print(ARGS)
     
     if ARGS.subparser == 'encrypt':
         
@@ -401,7 +401,7 @@ if __name__ == '__main__':
             message = ARGS.message_file.read()
             ARGS.message_file.close()
         
-        N,e = ARGS.N,ARGS.e
+        N,e = ARGS.modulus,ARGS.exponent
         if N is None or e is None:
             if ARGS.pubfile is None:
                 parser_enc.error("Missing N or e. Use either -N/--modulus " \
@@ -431,13 +431,15 @@ if __name__ == '__main__':
             c = ARGS.ciphertext_file.read()
             ARGS.ciphertext_file.close()
         
-        N,d = ARGS.N,ARGS.d
+        c = int(c)
+        
+        N,d = ARGS.modulus,ARGS.exponent
         if N is None or d is None:
             if ARGS.privfile is None:
                 parser_enc.error("Missing N or e. Use either -N/--modulus " \
                                  "and -d/--exponent, or -F/--privfile.")
             
-            _N,_d = map(int, euclidean.readFromFile(ARGS.pubfile,2))
+            _N,_d = map(int, euclidean.readFromFile(ARGS.privfile,2))
             
             if N is None: N = _N
             if d is None: d = _d
@@ -457,19 +459,17 @@ if __name__ == '__main__':
             pub,priv = keygen(ARGS.pair)
             
             if None in (ARGS.outfile, ARGS.pub_out):
-                print("N = {}".format(N)
+                print("N = {}".format(pub[0]))
             
             if ARGS.pub_out is None:
-                print("e = {}".format(e)
+                print("e = {}".format(pub[1]))
             else:
-                for val in (N,'\n',e):
-                    ARGS.pub_out.write(val)
+                ARGS.pub_out.write("{}\n{}".format(*pub))
             
             if ARGS.outfile is None:
-                print("d = {}".format(d)
+                print("d = {}".format(priv[1]))
             else:
-                for val in (N,'\n',d):
-                    ARGS.outfile.write(val)
+                ARGS.outfile.write("{}\n{}".format(*priv))
             
             exit(0)
         
