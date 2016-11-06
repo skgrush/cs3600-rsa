@@ -296,31 +296,35 @@ def interactiveInput():
     except: _input = input
     
     try:
-        pqe_inpPath = _input("Enter the name of the file that contains p, q and e:")
+        pqe_inpPath = _input("Enter the name of the file that contains p, q and e: ")
         p, q, e = map(int, euclidean.readFromFile(pqe_inpPath, 3) )
         
         d = generate_d(p, q, e)
         
-        dN_outPath= _input("Enter the output file name to store d and N:")
+        dN_outPath= _input("Enter the output file name to store d and N: ")
         with open(dN_outPath, mode='w') as dN_outFile:
-            dN_outFile.write("{}\n{}".format(d,N))
+            dN_outFile.write("{}\n{}".format(d,p*q))
         
-        x_inpPath= _input("Enter the name of the file that contains x to be encrypted using (N,e):")
-        x = euclidean.readFromFile(x_inpPath, 1)
+        x_inpPath= _input("Enter the name of the file that contains x to be encrypted using (N,e): ")
+        with open(x_inpPath) as x_inpFile:
+            x = x_inpFile.read()
         
         Ex = encrypt( p*q, e, x )
         
-        Ex_outPath= _input("Enter the output file name to store E(x):")
+        Ex_outPath= _input("Enter the output file name to store E(x): ")
         with open(Ex_outPath, mode='w') as Ex_outFile:
             Ex_outFile.write(str(Ex))
         
-        c_inpPath= _input("Enter the name of the file that contains c to be decrypted using d:")
-        c = euclidean.readFromFile(c_inpPath, 1)
+        c_inpPath= _input("Enter the name of the file that contains c to be decrypted using d: ")
+        with open(c_inpPath) as c_inpFile:
+            c = c_inpFile.read()
+        
+        c = int(c.rstrip())
         
         Dc = decrypt(p*q, d, c)
         
-        Dc_outPath= _input("Enter the output file name to store D(c):")
-        with open(Dc_outPath, mode='w') as Dc_outFile:
+        Dc_outPath= _input("Enter the output file name to store D(c): ")
+        with open(Dc_outPath, mode='bw') as Dc_outFile:
             Dc_outFile.write(Dc)
     
     except KeyboardInterrupt:
@@ -447,7 +451,7 @@ if __name__ == '__main__':
         m = decrypt(N, d, c)
         
         if ARGS.outfile:
-            ARGS.outfile.write(m)
+            ARGS.outfile.write( str(m,DEFAULT_ENCODING) )
         else:
             print(m)
     
