@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Python module and script implementing the basics of the RSA cryptosystem."""
 
 import math
 import random
@@ -289,36 +290,193 @@ def decrypt(N, d, ciphertext, msg_length=None):
 
 
 def interactiveInput():
-    try: input = raw_input
-    except: pass
+    try:    _input = raw_input
+    except: _input = input
     
-    pqe_inpPath = input("Enter the name of the file that contains p, q and e:")
-    p, q, e = map(int, euclidean.readFromFile(pqe_inpPath, 3) )
+    try:
+        pqe_inpPath = _input("Enter the name of the file that contains p, q and e:")
+        p, q, e = map(int, euclidean.readFromFile(pqe_inpPath, 3) )
+        
+        d = generate_d(p, q, e)
+        
+        dN_outPath= _input("Enter the output file name to store d and N:")
+        with open(dN_outPath, mode='w') as dN_outFile:
+            for val in (d, '\n', N):
+                dN_outFile.write(val)
+        
+        x_inpPath= _input("Enter the name of the file that contains x to be encrypted using (N,e):")
+        x = euclidean.readFromFile(x_inpPath, 1)
+        
+        Ex = encrypt( p*q, e, x )
+        
+        Ex_outPath= _input("Enter the output file name to store E(x):")
+        with open(Ex_outPath, mode='w') as Ex_outFile:
+            Ex_outFile.write(Ex)
+        
+        c_inpPath= _input("Enter the name of the file that contains c to be decrypted using d:")
+        c = euclidean.readFromFile(c_inpPath, 1)
+        
+        Dc = decrypt(p*q, d, c)
+        
+        Dc_outPath= _input("Enter the output file name to store D(c):")
+        with open(Dc_outPath, mode='w') as Dc_outFile:
+            Dc_outFile.write(Dc)
     
-    d = generate_d(p, q, e)
-    
-    dN_outPath= input("Enter the output file name to store d and N:")
-    with open(dN_outPath, mode='w') as dN_outFile:
-        for val in (d, '\n', N):
-            dN_outFile.write(val)
-    
-    x_inpPath= input("Enter the name of the file that contains x to be encrypted using (N,e):")
-    x = euclidean.readFromFile(x_inpPath, 1)
-    
-    Ex = encrypt( p*q, e, x )
-    
-    Ex_outPath= input("Enter the output file name to store E(x):")
-    with open(Ex_outPath, mode='w') as Ex_outFile:
-        Ex_outFile.write(Ex)
-    
-    c_inpPath= input("Enter the name of the file that contains c to be decrypted using d:")
-    c = euclidean.readFromFile(c_inpPath, 1)
-    
-    Dc = decrypt(p*q, d, c)
-    
-    Dc_outPath= input("Enter the output file name to store D(c):")
-    with open(Dc_outPath, mode='w') as Dc_outFile:
-        Dc_outFile.write(Dc)
+    except KeyboardInterrupt:
+        print("\nEarly exit due to keyboard interrupt")
+        exit(2)
 
 
-
+if __name__ == '__main__':
+    import sys
+    
+    if len(sys.argv) == 1:
+        # interactive mode
+        interactiveInput()
+        exit(0)
+    
+    
+    import argparse
+    
+    parser = argparse.ArgumentParser(description=__doc__)
+    
+    parser.add_argument('-o','--outfile', type=argparse.FileType('a'), 
+            help="Where to output the data. Default: stdout")
+    
+    subparsers = parser.add_subparsers(dest='subparser')
+    
+    ## ENCRYPT
+    parser_enc = subparsers.add_parser('encrypt',help="Encrypt a message.",
+            description="You must provide the message, modulus N, and " \
+            "exponent e by some means.")
+    parser_enc.add_argument('-F','--pubfile', type=argparse.FileType('r'), 
+            help="Get *N* and *e* from a newline-separated file.")
+    parser_enc.add_argument('-N','--modulus', type=int, help="The modulus *N*.")
+    parser_enc.add_argument('-e','--exponent',type=int, 
+            help="The public exponent *e*.")
+    parser_enc.add_argument('-m','--message', type=str, 
+            help="The message to be encrypted.")
+    parser_enc.add_argument('-f','--message-file', type=argparse.FileType('r'),
+            help="Get the message from this file.")
+    
+    ## DECRYPT
+    parser_dec = subparsers.add_parser('decrypt',help="Decrypt a message.",
+            description="You must provide the ciphertext, modulus N, and " \
+            "exponent d by some means.")
+    parser_dec.add_argument('-F','--privfile', type=argparse.FileType('r'),
+                          help="Get *N* and *d* from a newline-separated file.")
+    parser_dec.add_argument('-N','--modulus', type=int, help="The modulus *N*.")
+    parser_dec.add_argument('-d','--exponent',type=int, 
+            help="The private exponent *d*.")
+    parser_dec.add_argument('-c','--ciphertext', type=str, 
+            help="The ciphertext to be decrypted.")
+    parser_dec.add_argument('-f','--ciphertext-file',type=argparse.FileType('r'),
+            help="Get the ciphertext from this file.")
+    
+    ## KEYGEN
+    parser_gen = subparsers.add_parser('keygen',help="Generate keys.",
+            description="By default N, e, and d are printed. If given, the " \
+            "private key is written to -o/--outfile and the public key is " \
+            "written to --pub-out.")
+    parser_gen.add_argument('-p','--pair', type=int, nargs='?', metavar='bits',
+                            help="Generate a public-/private-key pair. " \
+                            "Optional argument is the desired size of N in " \
+                            "bits. Defaults to 2048.", default=2048)
+    parser_gen.add_argument('--pub-out', type=argparse.FileType('w'),
+                            help="File to output the public key to. Default " \
+                            "is stdout. Will overwrite the file!")
+    
+    ARGS = parser.parse_args()
+    
+    print(ARGS)
+    
+    if ARGS.subparser == 'encrypt':
+        
+        message = ARGS.message
+        if message is None:
+            if ARGS.message_file is None:
+                parser_enc.error("No message given. Use either -m/--message " \
+                             "or -f/--message-file.")
+            
+            message = ARGS.message_file.read()
+            ARGS.message_file.close()
+        
+        N,e = ARGS.N,ARGS.e
+        if N is None or e is None:
+            if ARGS.pubfile is None:
+                parser_enc.error("Missing N or e. Use either -N/--modulus " \
+                                 "and -e/--exponent, or -F/--pubfile.")
+            
+            _N,_e = map(int, euclidean.readFromFile(ARGS.pubfile,2))
+            
+            if N is None: N = _N
+            if e is None: e = _e
+        
+        c = encrypt(N, e, message)
+        
+        if ARGS.outfile:
+            ARGS.outfile.write(c)
+        else:
+            print(c)
+    
+    
+    elif ARGS.subparser == 'decrypt':
+        
+        c = ARGS.ciphertext
+        if c is None:
+            if ARGS.ciphertext_file is None:
+                parser_enc.error("No message given. Use either " \
+                             "-c/--ciphertext or -f/--ciphertext-file.")
+            
+            c = ARGS.ciphertext_file.read()
+            ARGS.ciphertext_file.close()
+        
+        N,d = ARGS.N,ARGS.d
+        if N is None or d is None:
+            if ARGS.privfile is None:
+                parser_enc.error("Missing N or e. Use either -N/--modulus " \
+                                 "and -d/--exponent, or -F/--privfile.")
+            
+            _N,_d = map(int, euclidean.readFromFile(ARGS.pubfile,2))
+            
+            if N is None: N = _N
+            if d is None: d = _d
+        
+        m = decrypt(N, d, c)
+        
+        if ARGS.outfile:
+            ARGS.outfile.write(m)
+        else:
+            print(m)
+    
+    
+    elif ARGS.subparser == 'keygen':
+        
+        if ARGS.pair is not None:
+            
+            pub,priv = keygen(ARGS.pair)
+            
+            if None in (ARGS.outfile, ARGS.pub_out):
+                print("N = {}".format(N)
+            
+            if ARGS.pub_out is None:
+                print("e = {}".format(e)
+            else:
+                for val in (N,'\n',e):
+                    ARGS.pub_out.write(val)
+            
+            if ARGS.outfile is None:
+                print("d = {}".format(d)
+            else:
+                for val in (N,'\n',d):
+                    ARGS.outfile.write(val)
+            
+            exit(0)
+        
+        else:
+            parser_gen.print_help()
+    
+    else:
+        # unknown subparser
+        parser.print_help()
+        exit(2)
