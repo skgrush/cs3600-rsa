@@ -10,7 +10,8 @@ isodd = lambda x: bool(x&1)
 
 def _millerRabinIterations(w):
     """Calculates the number of Miller-Rabin iterations to do for w."""
-    return max( 5,  int(22 * math.log(w.bit_length())) - 112 )
+    #return max( 5,  int(22 * math.log(w.bit_length())) - 112 )
+    return 10
 
 
 def millerRabinPPT(w,iterations=None):
@@ -44,52 +45,36 @@ def millerRabinPPT(w,iterations=None):
         iterations = _millerRabinIterations(w)
     
     
-    #1. Let a be the largest integer such that 2^a divides w-1
+    # Let a be the largest integer such that 2^a divides w-1
     a = int( math.log2(w-1) )
     while a > 0:
-        if ((w-1) % pow(2,a)) == 0: # 2^a divides w-1
+        if ((w-1) % (2<<a-1)) == 0: # 2^a divides w-1
             break
         a -= 1
     
-    #2. m = (w-1)/2^a
-    m = (w-1)//pow(2,a)
+    m = (w-1)//(2<<a-1)
     
-    #3. wlen = len(w)
-    wlen = w.bit_length()
-    
-    #4. For i=1 to iterations do
-    for i in range(iterations):
-        #4.1. Obtain a string b of wlen bits from an RBG
-        #       Ensure that 1 < b < w-1
-        #4.2. If ((b<=1)or(b>=w-1)) then go to step 4.1
-        b = 0
-        while not (1 < b and b < w-1): ##PROBLEM: loops forever if w<=3
-            b = random.getrandbits(wlen)
+    for _ in range(iterations):
+        b = random.randrange(2,w-1)
         
-        #4.3. z = b^m mod w
         z = pow(b, m, w)
         
-        #4.4. If ((z=1)or(z=w-1)) then go to step 4.7 [Continue]
-        if z==1 or z==w-1:
-            continue
-        
-        #4.5. For j=1 to a-1 do
-        continueOuter = False
-        for j in range(a):
-            #4.5.1. z = z^2 mod w
-            z = pow(z,2,w)
+        if not (z==1 or z==w-1):
             
-            #4.5.2. If (z=w-1), then go to step 4.7 [Continue loop #4]
-            if z == w-1:
-                continueOuter = True
-                break
-            #4.5.3. If (z=1), then go to step 4.6 [Return False]
-            if z == 1:
-                return False
-        if continueOuter:
-            continue
-        
-        return False
+            continueOuter = False
+            for _ in range(a):
+                z = pow(z,2,w)
+                
+                if z == w-1:
+                    continueOuter = True
+                    break
+                
+                if z == 1:
+                    return False
+            if continueOuter:
+                continue
+            
+            return False
     
     return True
 
