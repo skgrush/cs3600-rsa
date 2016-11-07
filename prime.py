@@ -6,7 +6,9 @@ import random
 isodd = lambda x: bool(x&1)
 """lambda: returns True if argument is odd, else False."""
 
-
+_first30primes = (  2,  3,  5,  7,  11, 13, 17, 19, 23, 29,
+                    31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+                    73, 79, 83, 89, 97, 101,103,107,109,113 )
 
 def _millerRabinIterations(w):
     """Calculates the number of Miller-Rabin iterations to do for w."""
@@ -36,9 +38,15 @@ def millerRabinPPT(w,iterations=None):
     ## SPECIAL CASES
     if w < 2:
         return False
-    elif w == 3:
+    elif w < 4:
         return True
-    elif not isodd(w):
+    elif not (x&1):
+        return False
+    
+    if w in _first30primes:
+        return True
+    
+    if any( (w%i==0) for i in _first30primes ):
         return False
     
     if iterations is None:
