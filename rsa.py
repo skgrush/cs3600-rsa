@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Python module and script implementing the basics of the RSA cryptosystem."""
+"""Python module and script implementing the basics of the RSA cryptosystem.
+
+Run with no arguments for interactive mode.
+"""
 
 import random
 
@@ -8,7 +11,7 @@ import prime
 
 DEFAULT_ENCODING = 'UTF-8'
 DEFAULT_BYTEORDER = 'little'
-DEFAULT_kbits = 2048
+DEFAULT_kbits = 1024
 
 class RSAError(Exception):
     pass
@@ -269,7 +272,7 @@ if __name__ == '__main__':
     parser_gen.add_argument('-p','--pair', type=int, nargs='?', metavar='bits',
                             help="Generate a public-/private-key pair. " \
                             "Optional argument is the desired size of N in " \
-                            "bits. Defaults to %const", 
+                            "bits. Defaults to %(const)s.", 
                             default=None, const=DEFAULT_kbits)
     parser_gen.add_argument('--pub-out', type=argparse.FileType('w'),
                             help="File to output the public key to. Default " \
