@@ -4,13 +4,18 @@
 
 My implementation for Project 3 for *CS 3600 Computer Security*. 
 
-*__intro_text__*
+Python scripts/modules implementing the basics of the RSA cryptosystem, the
+primality functions that support it, and the [euclidean.py][git-euclidean]
+module.
+
 
 
 ## Installation
 
-Only depends on Python standard libraries.
-Compatible with Python 2 and 3.
+Only depends on Python standard libraries. Compatible with Python 3\*.
+
+\* `int.from_bytes()` requires Python 3.2+. *If support is every added for
+Python 2, `random.getrandbits()` requires Python 2.4+.*
 
 
 ## Usage
@@ -31,3 +36,5 @@ and private exponent *d* through some combination of arguments.
 For key generation, use `./rsa.py keygen -p [bits]` where *bits* is the
 optional size of *N* (defaults to 1024).
 
+
+[git-euclidean]: https://github.com/skgrush/cs3600-euclidean/
