@@ -40,7 +40,7 @@ def millerRabinPPT(w,iterations=None):
         return False
     elif w < 4:
         return True
-    elif not (x&1):
+    elif not (w&1):
         return False
     
     if w in _first30primes:
