@@ -54,7 +54,7 @@ def millerRabinPPT(w,iterations=None):
     
     
     # Let a be the largest integer such that 2^a divides w-1
-    a = int( math.log2(w-1) )
+    a = int( math.log(w-1,2) )
     while a > 0:
         if ((w-1) % (2<<a-1)) == 0: # 2^a divides w-1
             break
