@@ -36,6 +36,8 @@ def integerize(value):
     """
     #convert strings to bytes
     if isinstance(value,str):
+        if value.isdigit():
+            return int(value)
         value = bytes(value, DEFAULT_ENCODING)
     
     #convert bytes to integers
@@ -60,6 +62,8 @@ def deintegerize(value,length=None):
     """
     if not isinstance(value,int):
         raise TypeError("'value' argument must be an int")
+    
+    return value
     
     if length is None or length <= 0:
         #byte length = round up (bit-length / 8)
@@ -211,7 +215,7 @@ def interactiveInput():
         
         Dc_outPath= _input("Enter the output file name to store D(c): ")
         with open(Dc_outPath, mode='bw') as Dc_outFile:
-            Dc_outFile.write(Dc)
+            Dc_outFile.write(str(Dc))
     
     except KeyboardInterrupt:
         print("\nEarly exit due to keyboard interrupt")
@@ -305,7 +309,7 @@ if __name__ == '__main__':
         c = encrypt(N, e, message)
         
         if ARGS.outfile:
-            ARGS.outfile.write(c)
+            ARGS.outfile.write(str(c))
         else:
             print(c)
     
