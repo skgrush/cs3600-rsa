@@ -104,7 +104,7 @@ def generate_d(p, q, e):
     totient_N = (p-1)*(q-1)
     
     # ModMultInv of b (under mod a) is x from (1 = e*x + N*y)
-    d = euclidean.extendedEuclidean( e, totient_N )[1]
+    d = abs(euclidean.extendedEuclidean( e, totient_N )[1])
     
     return d
 
@@ -197,7 +197,7 @@ def interactiveInput():
         
         x_inpPath= _input("Enter the name of the file that contains x to be encrypted using (N,e): ")
         with open(x_inpPath) as x_inpFile:
-            x = x_inpFile.read()
+            x = x_inpFile.read().strip()
         
         Ex = encrypt( p*q, e, x )
         
@@ -214,7 +214,7 @@ def interactiveInput():
         Dc = decrypt(p*q, d, c)
         
         Dc_outPath= _input("Enter the output file name to store D(c): ")
-        with open(Dc_outPath, mode='bw') as Dc_outFile:
+        with open(Dc_outPath, mode='w') as Dc_outFile:
             Dc_outFile.write(str(Dc))
     
     except KeyboardInterrupt:
